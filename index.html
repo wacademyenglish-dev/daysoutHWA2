@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WOLF LABS | Homework: Days Out</title>
+    
+    <!-- Epic Typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800;900&family=Inter:wght@300;400;600;700;800&family=Fira+Code:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* --- WOLF LABS ENGINE V3.0: HOMEWORK EDITION --- */
+        :root {
+            --bg: #050505;
+            --surface: rgba(18, 18, 18, 0.85);
+            --border: rgba(255, 255, 255, 0.1);
+            --accent: #1DB954; 
+            --accent-glow: rgba(29, 185, 84, 0.3);
+            --accent-gold: #D4AF37;
+            --correct: #1DB954;
+            --incorrect: #E50914; 
+            --text-main: #FFFFFF;
+            --text-dim: #A1A1AA;
+            --font-display: 'Inter', sans-serif;
+            --font-body: 'Inter', sans-serif;
+            --font-code: 'Fira Code', monospace;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: linear-gradient(to top, rgba(5,5,5,1) 5%, rgba(5,5,5,0.7) 100%), 
+                        url('https://images.unsplash.com/photo-1501504905252-473c47e087f8?q=80&w=2000&auto=format&fit=crop') no-repeat center center fixed;
+            background-size: cover;
+            color: var(--text-main);
+            font-family: var(--font-body);
+            line-height: 1.6;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            /* Prevent mobile pull-to-refresh issues */
+            overscroll-behavior-y: none; 
+        }
+
+        /* --- AMBIENT ORBS --- */
+        .ambient-orbs {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: -1; overflow: hidden; pointer-events: none;
+        }
+        .orb {
+            position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.15;
+            animation: floatOrb 20s infinite alternate ease-in-out;
+        }
+        .orb-1 { width: 500px; height: 500px; background: var(--accent); top: -10%; left: -10%; }
+        .orb-2 { width: 600px; height: 600px; background: #0077ff; bottom: -20%; right: -10%; animation-delay: -5s; }
+
+        @keyframes floatOrb { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(50px, 50px) scale(1.1); } }
+
+        /* --- HEADER --- */
+        .header {
+            position: fixed; top: 0; left: 0; right: 0;
+            height: 80px; padding: 0 40px;
+            display: flex; align-items: center; justify-content: space-between; z-index: 100;
+            background: rgba(5,5,5,0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+        .logo { font-family: var(--font-display); font-weight: 900; font-size: 1.2rem; letter-spacing: 2px; color: #fff; display: flex; align-items: center; gap: 8px;}
+        .logo span { color: var(--accent); }
+
+        .progress-container { position: absolute; bottom: -1px; left: 0; right: 0; height: 3px; background: rgba(255,255,255,0.05); }
+        .progress-bar { height: 100%; background: var(--accent); width: 0%; transition: width 0.4s ease; box-shadow: 0 0 15px var(--accent-glow); }
+
+        /* --- MAIN LAYOUT (SCROLLABLE AREA) --- */
+        main {
+            flex: 1; 
+            width: 100%; max-width: 1100px; margin: 0 auto;
+            padding-top: 100px; padding-bottom: 150px;
+            display: flex; align-items: center; justify-content: center;
+            position: relative; z-index: 10;
+        }
+        
+        .step {
+            position: absolute; width: 100%; max-width: 950px;
+            opacity: 0; pointer-events: none; transform: scale(0.96);
+            transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+            visibility: hidden; 
+        }
+        .step.active { 
+            opacity: 1; pointer-events: auto; transform: scale(1); 
+            visibility: visible; position: relative; 
+        }
+
+        /* --- GLASSMORPHISM PANELS --- */
+        .glass-panel {
+            background: linear-gradient(135deg, rgba(20,20,20,0.85) 0%, rgba(10,10,10,0.95) 100%);
+            backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+            border: 1px solid var(--border); border-radius: 24px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+            padding: 50px; position: relative; z-index: 10; width: 100%;
+        }
+
+        .dual-panel { display: flex; gap: 50px; align-items: center; width: 100%; }
+        .dual-panel > * { flex: 1; }
+
+        /* --- TYPOGRAPHY --- */
+        h1, h2, h3 { font-family: var(--font-display); letter-spacing: -1px; text-shadow: 0 10px 30px rgba(0,0,0,0.8); margin-bottom: 20px;}
+        h1 { font-size: 4.5rem; line-height: 1.1; color: #fff; font-weight: 900;}
+        h2 { font-size: 2.2rem; color: var(--text-main); display: flex; align-items: center; gap: 15px; font-weight: 800;}
+        h2 i { color: var(--accent); }
+        p { font-size: 1.2rem; color: var(--text-dim); margin-bottom: 20px; line-height: 1.7;}
+
+        .code-tag { font-family: var(--font-code); font-weight: 800; color: var(--accent); font-size: 0.85rem; background: rgba(29, 185, 84, 0.1); padding: 6px 16px; border-radius: 500px; border: 1px solid rgba(29, 185, 84, 0.2); text-transform: uppercase; display: inline-block; margin-bottom: 15px;}
+
+        /* --- BUTTONS & INTERACTIVE ELEMENTS --- */
+        .btn {
+            padding: 16px 40px; border: none; border-radius: 12px; font-family: var(--font-display);
+            font-size: 1.1rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
+            cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+            background: #fff; color: #000; box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+        .btn-accent { background: var(--accent); color: #000; box-shadow: 0 10px 30px var(--accent-glow); }
+        .btn:hover:not(:disabled) { transform: translateY(-3px) scale(1.02); }
+        .btn:disabled { opacity: 0.3; pointer-events: none; }
+
+        /* Multiple Choice Grid */
+        .mcq-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 30px; }
+        .mcq-option {
+            background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+            padding: 20px 30px; border-radius: 16px; font-size: 1.2rem; font-weight: 600;
+            color: var(--text-main); cursor: pointer; transition: 0.3s; text-align: left;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .mcq-option:hover { background: rgba(29, 185, 84, 0.1); border-color: var(--accent); transform: translateX(5px); }
+        .mcq-option i { opacity: 0; transform: scale(0.5); transition: 0.3s; font-size: 1.5rem; }
+        .mcq-option.correct { background: rgba(29, 185, 84, 0.2); border-color: var(--correct); color: var(--text-main); pointer-events: none; }
+        .mcq-option.correct i { opacity: 1; transform: scale(1); color: var(--correct); }
+        .mcq-option.incorrect { background: rgba(229, 9, 20, 0.2); border-color: var(--incorrect); color: var(--text-main); animation: shake 0.4s; pointer-events: none; }
+        .mcq-option.incorrect i { opacity: 1; transform: scale(1); color: var(--incorrect); }
+
+        /* Highlight Zone */
+        .highlight-zone { padding: 35px; background: rgba(255,255,255,0.02); border-radius: 16px; margin-bottom: 20px; border: 1px solid var(--border); text-align: center; font-size: 1.5rem; line-height: 1.8; box-shadow: inset 0 0 20px rgba(0,0,0,0.5);}
+
+        /* Syntax Builder */
+        .drop-zone { min-height: 120px; border: 2px dashed rgba(255,255,255,0.2); border-radius: 16px; margin-bottom: 30px; display: flex; align-items: center; justify-content: center; padding: 20px; gap: 12px; flex-wrap: wrap; background: rgba(0, 0, 0, 0.3); transition: 0.3s;}
+        .drop-zone.active { border-color: var(--accent); background: rgba(29, 185, 84, 0.05); }
+        .drop-zone.success { border-color: var(--correct); border-style: solid; background: rgba(29, 185, 84, 0.1); box-shadow: inset 0 0 30px rgba(29,185,84,0.15); }
+        .drop-zone.auto-solved { border-color: var(--accent-gold); border-style: solid; background: rgba(212, 175, 55, 0.05); }
+        
+        .word-bank { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; min-height: 60px;}
+        .word-chip { padding: 14px 28px; background: var(--accent); border-radius: 8px; cursor: pointer; user-select: none; transition: all 0.3s; font-weight: 800; border: none; color: #000; font-size: 1.1rem; box-shadow: 0 5px 15px rgba(29, 185, 84, 0.3);}
+        .word-chip:hover { filter: brightness(1.1); transform: translateY(-4px); }
+        .word-chip.used { opacity: 0; pointer-events: none; transform: scale(0.8); }
+        .drop-zone .word-chip { background: #fff; color: #000; }
+        .drop-zone.success .word-chip { background: var(--correct); pointer-events: none; }
+        .drop-zone.auto-solved .word-chip { background: var(--accent-gold); pointer-events: none; }
+
+        /* Error Finder */
+        .error-sentence { font-size: 1.8rem; word-spacing: 5px; line-height: 2; font-weight: 600; text-align: center;}
+        .error-word { display: inline-block; padding: 6px 12px; cursor: pointer; border-radius: 8px; transition: 0.2s; border: 1px solid transparent;}
+        .error-word:hover { background: rgba(255,255,255,0.1); border-color: rgba(29, 185, 84, 0.4);}
+        .error-word.correct-choice-anim { background: var(--correct); color: #000; border-color: var(--correct); font-weight: 800; transform: scale(1.1); box-shadow: 0 0 20px var(--accent-glow); pointer-events: none;}
+
+        /* True/False List */
+        .track-list { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+        .track-row { display: flex; align-items: center; padding: 20px 25px; border-radius: 12px; background: rgba(0,0,0,0.4); border: 1px solid var(--border); transition: 0.3s; gap: 20px;}
+        .track-num { width: 30px; color: var(--text-dim); font-weight: 800; font-size: 1.2rem;}
+        .track-info { flex: 1; font-size: 1.2rem; font-weight: 600; color: var(--text-main); }
+        .track-actions { display: flex; gap: 10px; }
+        .t-btn { padding: 10px 20px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: transparent; color: var(--text-main); font-weight: 800; cursor: pointer; transition: 0.2s; font-size: 1rem;}
+        .t-btn:hover { border-color: var(--accent); background: rgba(255,255,255,0.05); }
+        .track-row.correct { background: rgba(29, 185, 84, 0.1); border-color: rgba(29, 185, 84, 0.3); }
+        .track-row.correct .t-btn { display: none; }
+        .track-row.correct::after { content: '✓ VERIFIED'; color: var(--accent); font-weight: 900; font-size: 1.1rem; margin-right: 10px;}
+        .track-row.incorrect { animation: shake 0.4s ease; border-color: var(--incorrect); background: rgba(229, 9, 20, 0.1); }
+
+        /* Writing Task */
+        .writing-area { width: 100%; height: 180px; background: rgba(0,0,0,0.5); border: 1px solid var(--border); border-radius: 16px; padding: 25px; color: var(--accent); font-family: var(--font-code); font-size: 1.1rem; resize: none; outline: none; margin-bottom: 20px; transition: 0.3s; box-shadow: inset 0 0 20px rgba(0,0,0,0.5);}
+        .writing-area:focus { border-color: var(--accent); background: rgba(0,0,0,0.8); }
+        .writing-area::placeholder { color: rgba(255,255,255,0.2); font-family: var(--font-body); }
+        .writing-status { font-size: 0.9rem; color: var(--text-dim); text-align: right; margin-bottom: 20px; font-weight: 600;}
+
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-5px); } 40%, 80% { transform: translateX(5px); } }
+
+        /* --- FOOTER / NAV BAR (FIXED) --- */
+        .nav-bar {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            height: 100px; padding: 0 50px;
+            background: rgba(10,10,10,0.95); border-top: 1px solid rgba(255,255,255,0.05);
+            display: flex; align-items: center; justify-content: space-between; z-index: 999; backdrop-filter: blur(20px);
+        }
+        
+        .skip-warning { color: var(--incorrect); font-weight: 800; font-size: 0.9rem; margin-right: 20px; display: none; animation: pulse-text 1.5s infinite;}
+
+        /* =========================================
+           MOBILE OPTIMIZATION (MOBILE-FIRST)
+        ========================================= */
+        @media (max-width: 850px) {
+            /* Header */
+            .header { padding: 0 20px; height: 70px; }
+            .logo { font-size: 1.1rem; }
+            
+            /* Main Content */
+            main { padding-top: 90px; padding-bottom: 120px; px-4; }
+            .glass-panel { padding: 30px 20px; border-radius: 20px;}
+            
+            /* Typography */
+            h1 { font-size: 2.8rem; line-height: 1.1;}
+            h2 { font-size: 1.8rem; }
+            p.subtitle { font-size: 1.1rem; }
+            
+            /* Buttons */
+            .btn { width: 100%; justify-content: center; padding: 14px 20px; font-size: 1rem; }
+            .nav-bar .btn { width: auto; padding: 12px 20px;} /* Keep nav buttons normal */
+            
+            /* Panels & Interactive elements */
+            .dual-panel { flex-direction: column; gap: 20px; }
+            .highlight-zone { font-size: 1.1rem; padding: 20px;}
+            .error-sentence { font-size: 1.3rem; word-spacing: 2px;}
+            .mcq-option { font-size: 1.1rem; padding: 15px 20px; flex-direction: column; text-align: center; gap: 10px; }
+            .drop-zone { padding: 15px; min-height: 100px; }
+            .word-chip { padding: 12px 20px; font-size: 1rem; }
+            
+            /* Track Rows (True False) */
+            .track-row { padding: 15px; gap: 12px; flex-direction: column; text-align: center; }
+            .track-actions { width: 100%; display: flex; gap: 10px; }
+            .t-btn { flex: 1; text-align: center; padding: 12px; }
+            
+            /* Inputs */
+            .writing-area { height: 140px; font-size: 1rem; padding: 15px; }
+
+            /* Footer */
+            .nav-bar { padding: 0 15px; height: 80px; }
+            .step-counter { font-size: 0.85rem; letter-spacing: 1px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ambient-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="logo"><i class="fa-solid fa-moon" style="color:var(--accent); margin-right:8px;"></i> WOLF LABS <span>|</span> HOMEWORK</div>
+        <div class="progress-container"><div class="progress-bar" id="progressBar"></div></div>
+    </header>
+
+    <!-- Main Container -->
+    <main id="main-container">
+        
+        <!-- SCENE 0: HERO -->
+        <section class="step active" id="step-0">
+            <div class="glass-panel" style="text-align: center; background: transparent; border: none; box-shadow: none; padding: 0;">
+                <div class="dual-panel" style="align-items: center;">
+                    <div style="flex: 1.2; text-align: left;">
+                        <span class="code-tag">A2 PRE-INTERMEDIATE | ASYNCHRONOUS</span>
+                        <h1 style="font-size: 4.5rem; margin-top: 10px;">Days Out<br><span style="color: var(--accent);">Mission</span></h1>
+                        <p style="font-size: 1.3rem;">Complete these challenges to reinforce your knowledge of Past Simple, "Used to", and Leisure Vocabulary.</p>
+                        <button class="btn btn-accent" style="margin-top: 30px;" onclick="Engine.nextStep()"><i class="fa-solid fa-play"></i> Start Mission</button>
+                    </div>
+                    <div style="flex: 0.8; display: none; /* Hidden on mobile */" class="desktop-only">
+                        <div style="background: rgba(255,255,255,0.02); padding: 50px; border-radius: 24px; border: 1px solid var(--border); text-align: center; backdrop-filter: blur(10px);">
+                            <i class="fa-solid fa-laptop-file" style="font-size: 4rem; color: var(--accent); margin-bottom: 20px;"></i>
+                            <h3 style="color: #fff; font-size: 2rem; font-family: var(--font-display);">Offline Protocol</h3>
+                            <p style="font-size: 1.1rem; margin:0; color: var(--text-dim);">8 Exercises • Auto-verification enabled</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCENE 1: VOCAB RECALL 1 -->
+        <section class="step" id="step-1">
+            <div class="glass-panel">
+                <h2><i class="fa-solid fa-brain"></i> Vocab Recall 1/2</h2>
+                <p>Select the correct word for the definition:</p>
+                <div class="highlight-zone">
+                    "Someone who loves exciting and dangerous activities."
+                </div>
+                <div class="mcq-grid" data-attempts="0" id="mcq-1">
+                    <div class="mcq-option" onclick="Engine.checkMCQ(this, false, 'mcq-1', null)">
+                        <span>Sightseer</span> <i class="fa-solid fa-xmark"></i>
+                    </div>
+                    <div class="mcq-option" onclick="Engine.checkMCQ(this, true, 'mcq-1', 1)">
+                        <span>Thrill seeker</span> <i class="fa-solid fa-check"></i>
+                    </div>
+                    <div class="mcq-option" onclick="Engine.checkMCQ(this, false, 'mcq-1', null)">
+                        <span>Adventurous</span> <i class="fa-solid fa-xmark"></i>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCENE 2: VOCAB RECALL 2 -->
+        <section class="step" id="step-2">
+            <div class="glass-panel">
+                <h2><i class="fa-solid fa-brain"></i> Vocab Recall 2/2</h2>
+                <p>Select the correct word for the definition:</p>
+                <div class="highlight-zone">
+                    "To relax after a period of hard work or tension."
+                </div>
+                <div class="mcq-grid" data-attempts="0" id="mcq-2">
+                    <div class="mcq-option" onclick="Engine.checkMCQ(this, true, 'mcq-2', 2)">
+                        <span>Unwind</span> <i class="fa-solid fa-check"></i>
+                    </div>
+                    <div class="mcq-option" onclick="Engine.checkMCQ(this, false, 'mcq-2', null)">
+                        <span>Escape</span> <i class="fa-solid fa-xmark"></i>
+                    </div>
+                    <div class="mcq-option" onclick="Engine.checkMCQ(this, false, 'mcq-2', null)">
+                        <span>Abroad</span> <i class="fa-solid fa-xmark"></i>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCENE 3: BUILDER 1 (Past Simple) -->
+        <section class="step" id="step-3">
+            <div class="glass-panel" style="text-align:center;">
+                <h2><i class="fa-solid fa-hammer"></i> Grammar Constructor 1</h2>
+                <p class="subtitle">Build an affirmative sentence in the Past Simple.</p>
+                <div class="drop-zone" id="dz1" data-attempts="0"></div>
+                <div class="word-bank" id="wb1"></div>
+            </div>
+        </section>
+
+        <!-- SCENE 4: ERROR DETECTION 1 -->
+        <section class="step" id="step-4">
+            <div class="glass-panel" style="text-align:center;">
+                <h2><i class="fa-solid fa-bug"></i> System Debug 1</h2>
+                <p>Find the grammar mistake. Click the wrong word.</p>
+                <div class="highlight-zone" style="margin-top: 40px;">
+                    <div class="error-sentence" data-attempts="0" id="err-4">
+                        <span class="error-word" onclick="Engine.checkError(this, false, 'err-4')">Yesterday,</span>
+                        <span class="error-word" onclick="Engine.checkError(this, false, 'err-4')">we</span>
+                        <span class="error-word" onclick="Engine.checkError(this, true, 'err-4', 4, 'went')">go</span>
+                        <span class="error-word" onclick="Engine.checkError(this, false, 'err-4')">to</span>
+                        <span class="error-word" onclick="Engine.checkError(this, false, 'err-4')">the</span>
+                        <span class="error-word" onclick="Engine.checkError(this, false, 'err-4')">beach.</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCENE 5: ERROR DETECTION 2 (Negative Used To) -->
+        <section class="step" id="step-5">
+            <div class="glass-panel" style="text-align:center;">
+                <h2><i class="fa-solid fa-bug"></i> System Debug 2</h2>
+                <p>Find the grammar mistake in the negative form.</p>
+                <div class="highlight-zone" style="margin-top: 40px;">
+                    <div class="error-sentence" data-attempts="0" id="err-5">
+                        <span class="error-word" onclick="Engine.checkError(this, false, 'err-5')">I</span>
+                        <span class="error-word" onclick="Engine.checkError(this, false, 'err-5')">didn't</span>
+                        <span class="error-word" onclick="Engine.checkError(this, true, 'err-5', 5, 'use')">used</span>
+                        <span class="error-word" onclick="Engine.checkError(this, false, 'err-5')">to</span>
+                        <span class="error-word" onclick="Engine.checkError(this, false, 'err-5')">like</span>
+                        <span class="error-word" onclick="Engine.checkError(this, false, 'err-5')">coffee.</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCENE 6: READING COMPREHENSION -->
+        <section class="step" id="step-6">
+            <div class="glass-panel">
+                <h2><i class="fa-solid fa-glasses"></i> Data Analysis</h2>
+                <p class="subtitle">Read the text about Mark's transformation.</p>
+                <div class="highlight-zone" style="text-align: left; font-size: 1.3rem; line-height: 1.8;">
+                    "When I was young, my family used to go to the seaside every summer. It was relaxing. I used to build sandcastles and eat ice cream.<br><br>
+                    But now, I am a thrill seeker. Last weekend, I went to a huge theme park and rode five roller coasters. It was exhausting but incredibly memorable!"
+                </div>
+                <div style="text-align: center; margin-top: 30px;">
+                    <button class="btn btn-accent" onclick="Engine.nextStep()">Go to Questions <i class="fa-solid fa-arrow-right"></i></button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCENE 7: TRUE/FALSE -->
+        <section class="step" id="step-7">
+            <div>
+                <h2><i class="fa-solid fa-list-check"></i> Verification</h2>
+                <p>Based on Mark's text, are these statements True or False?</p>
+                <div class="glass-panel" style="padding: 30px;">
+                    <div class="track-row" id="row1">
+                        <div class="track-num">1</div>
+                        <div class="track-info">Mark used to hate going to the seaside.</div>
+                        <div class="track-actions">
+                            <button class="t-btn" onclick="Engine.checkTF(this, false, 7)">True</button>
+                            <button class="t-btn" onclick="Engine.checkTF(this, true, 7)">False</button>
+                        </div>
+                    </div>
+                    <div class="track-row" id="row2">
+                        <div class="track-num">2</div>
+                        <div class="track-info">Last weekend, he visited a theme park.</div>
+                        <div class="track-actions">
+                            <button class="t-btn" onclick="Engine.checkTF(this, true, 7)">True</button>
+                            <button class="t-btn" onclick="Engine.checkTF(this, false, 7)">False</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SCENE 8: WRITING TASK -->
+        <section class="step" id="step-8">
+            <div class="glass-panel">
+                <h2><i class="fa-solid fa-keyboard"></i> Output Protocol</h2>
+                <p class="subtitle">Write 2 to 3 sentences about a place you used to visit as a child, or something you did last weekend.</p>
+                
+                <textarea class="writing-area" id="writingBox" placeholder="E.g., When I was a child, I used to visit my grandparents in the countryside... or Last weekend, I went to a museum..."></textarea>
+                <div class="writing-status" id="charCount">0 / 40 characters minimum</div>
+                
+                <div style="text-align: center;">
+                    <button class="btn btn-accent" id="submitWritingBtn" disabled onclick="Engine.submitWriting()"><i class="fa-solid fa-paper-plane"></i> Submit Output</button>
+                </div>
+                
+                <div id="writingSuccess" style="display:none; text-align: center; margin-top: 20px; color: var(--correct); font-weight: 800; font-size: 1.2rem;">
+                    <i class="fa-solid fa-check-double"></i> Output saved successfully! You can proceed.
+                </div>
+            </div>
+        </section>
+
+        <!-- SCENE 9: END -->
+        <section class="step" id="step-9">
+            <div class="glass-panel" style="text-align: center; border: 1px solid var(--correct); background: rgba(29, 185, 84, 0.05); box-shadow: 0 0 100px rgba(29, 185, 84, 0.2);">
+                <i class="fa-solid fa-shield-check" style="font-size: 5rem; color: var(--correct); margin-bottom: 20px;"></i>
+                <h1 style="color: var(--correct); font-size: 4rem; text-shadow: none;">Homework<br>Completed</h1>
+                <p style="font-size: 1.5rem;">You are ready for the next level.</p>
+                
+                <div style="background: rgba(0,0,0,0.5); padding: 40px; border-radius: 20px; max-width: 600px; margin: 30px auto; text-align: left; border: 1px solid rgba(255,255,255,0.1);">
+                    <span style="color:var(--accent); font-family: var(--font-code); font-weight: 800; font-size: 1.2rem; letter-spacing: 2px; text-transform: uppercase; display: block; margin-bottom: 20px;"><i class="fa-solid fa-database"></i> Training Log</span>
+                    <ul style="list-style: none; color: #fff; line-height: 2.2; font-weight: 600; font-size: 1.2rem;">
+                        <li><i class="fa-solid fa-check" style="color:var(--accent); margin-right:15px;"></i> Vocabulary Verified</li>
+                        <li><i class="fa-solid fa-check" style="color:var(--accent); margin-right:15px;"></i> Past Simple Syntax Corrected</li>
+                        <li><i class="fa-solid fa-check" style="color:var(--accent); margin-right:15px;"></i> "Used to" Formats Mastered</li>
+                        <li><i class="fa-solid fa-check" style="color:var(--accent); margin-right:15px;"></i> Written Output Submitted</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer / Navigation Bar -->
+    <nav class="nav-bar">
+        <button class="btn" style="background: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.2);" id="ctrl-prev" onclick="Engine.prevStep()" disabled><i class="fa-solid fa-arrow-left"></i> BACK</button>
+        <div style="font-weight: 800; font-size: 1rem; color: var(--text-dim); letter-spacing: 2px;" id="step-counter">TASK 1 / 9</div>
+        <div style="display:flex; align-items:center; gap: 15px;">
+             <div class="skip-warning" id="skip-warn" style="display:none; color: var(--incorrect); font-weight: 800; font-size: 0.95rem; text-transform: uppercase;">Task Locked! (Double-click to skip)</div>
+             <button class="btn btn-accent" id="ctrl-next" onclick="Engine.nextStep()">NEXT TASK <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+    </nav>
+
+    <script>
+        /* =========================================
+           DATA & CONFIG
+        ========================================= */
+        const AppState = {
+            currentStep: 0,
+            totalSteps: document.querySelectorAll('.step').length,
+            lockedSteps: {
+                1: true, // MCQ 1
+                2: true, // MCQ 2
+                3: true, // Builder 1
+                4: true, // Error Detect 1 (went)
+                5: true, // Error Detect 2 (use)
+                7: true, // Fact Check 1/2
+                8: true  // Writing Task
+            } 
+        };
+
+        // Arrays exactly matching Drop Zone IDs
+        const SyntaxDB = {
+            'dz1': { target: ["They", "went", "to", "the", "seaside"], bank: "wb1", errors: 0 }
+        };
+
+        /* =========================================
+           ENGINE EXPORT FOR HTML EVENTS
+        ========================================= */
+        const Engine = {
+            updateUI() {
+                document.querySelectorAll('.step').forEach((step, index) => {
+                    if(index === AppState.currentStep) {
+                        step.classList.add('active');
+                    } else {
+                        step.classList.remove('active');
+                    }
+                });
+
+                document.getElementById('ctrl-prev').disabled = AppState.currentStep === 0;
+                document.getElementById('ctrl-next').style.display = AppState.currentStep === AppState.totalSteps - 1 ? 'none' : 'flex';
+                document.getElementById('step-counter').innerText = AppState.currentStep === 0 ? "BRIEFING" : `TASK ${AppState.currentStep} / ${AppState.totalSteps - 2}`;
+                
+                const pb = document.getElementById('progressBar');
+                if (pb) {
+                    const progress = (AppState.currentStep / (AppState.totalSteps - 1)) * 100;
+                    pb.style.width = `${progress}%`;
+                }
+
+                // Manage locks
+                const btnNext = document.getElementById('ctrl-next');
+                const skipWarn = document.getElementById('skip-warn');
+                let isLocked = AppState.lockedSteps[AppState.currentStep] || false;
+                
+                if(isLocked) {
+                    btnNext.style.opacity = "0.5";
+                    btnNext.onclick = () => { skipWarn.style.display = 'block'; setTimeout(()=>skipWarn.style.display='none', 3000); };
+                    btnNext.ondblclick = () => { AppState.lockedSteps[AppState.currentStep] = false; Engine.updateUI(); Engine.nextStep(); }; // Force Skip
+                } else {
+                    btnNext.style.opacity = "1";
+                    btnNext.onclick = () => Engine.nextStep();
+                    btnNext.ondblclick = null;
+                    skipWarn.style.display = 'none';
+                }
+
+                document.getElementById('main-container').scrollTo(0, 0);
+            },
+
+            nextStep() {
+                if (AppState.currentStep < AppState.totalSteps - 1) { 
+                    AppState.currentStep++; 
+                    this.updateUI(); 
+                }
+            },
+
+            prevStep() {
+                if (AppState.currentStep > 0) { 
+                    AppState.currentStep--; 
+                    this.updateUI(); 
+                }
+            },
+
+            // MCQ Logic
+            checkMCQ(optionEl, isCorrect, containerId, stepNum) {
+                if(AppState.lockedSteps[stepNum] === false) return; // already solved
+                const container = document.getElementById(containerId);
+                let attempts = parseInt(container.dataset.attempts || '0');
+
+                if (isCorrect) {
+                    optionEl.classList.add('correct');
+                    Array.from(container.children).forEach(c => { if(c !== optionEl) c.style.opacity = '0.5'; c.style.pointerEvents = 'none'; });
+                    AppState.lockedSteps[stepNum] = false;
+                    Engine.updateUI();
+                } else {
+                    attempts++;
+                    container.dataset.attempts = attempts;
+                    optionEl.classList.add('incorrect');
+                    setTimeout(() => optionEl.classList.remove('incorrect'), 500);
+
+                    if(attempts >= 2) {
+                        const correctOpt = Array.from(container.children).find(c => c.getAttribute('onclick').includes('true'));
+                        if(correctOpt) {
+                            correctOpt.classList.add('correct');
+                            correctOpt.style.background = 'var(--accent-gold)';
+                            correctOpt.style.borderColor = 'var(--accent-gold)';
+                            correctOpt.querySelector('i').style.color = '#000';
+                            correctOpt.style.color = '#000';
+                            
+                            Array.from(container.children).forEach(c => { c.style.pointerEvents = 'none'; if(c !== correctOpt) c.style.opacity = '0.3'; });
+                            AppState.lockedSteps[stepNum] = false;
+                            Engine.updateUI();
+                        }
+                    }
+                }
+            },
+
+            // True False Logic
+            checkTF(btn, isCorrect, stepNum) {
+                const row = btn.closest('.track-row');
+                const stepEl = btn.closest('.step');
+                const options = Array.from(row.querySelectorAll('.t-btn'));
+                
+                if (isCorrect) {
+                    options.forEach(b => b.style.pointerEvents = 'none');
+                    btn.style.backgroundColor = 'var(--correct)';
+                    btn.style.color = '#000';
+                    btn.style.borderColor = 'var(--correct)';
+                    row.classList.add('correct');
+                    
+                    if(stepEl) {
+                        const allRows = stepEl.querySelectorAll('.track-row');
+                        const allCorrect = Array.from(allRows).every(r => r.classList.contains('correct'));
+                        if(allCorrect) {
+                            AppState.lockedSteps[stepNum] = false;
+                            Engine.updateUI();
+                        }
+                    }
+                } else {
+                    btn.style.backgroundColor = 'var(--incorrect)';
+                    btn.style.color = '#fff';
+                    btn.style.borderColor = 'var(--incorrect)';
+                    btn.style.animation = 'shake 0.4s';
+                    btn.style.pointerEvents = 'none';
+                    
+                    // Auto solve T/F on first error since it's binary
+                    options.forEach(b => {
+                        b.style.pointerEvents = 'none';
+                        if (b.getAttribute('onclick').includes('true')) {
+                            b.style.backgroundColor = 'var(--correct)';
+                            b.style.color = '#000';
+                            b.style.borderColor = 'var(--correct)';
+                            row.classList.add('correct');
+                        }
+                    });
+                    
+                    if(stepEl) {
+                        const allRows = stepEl.querySelectorAll('.track-row');
+                        const allCorrect = Array.from(allRows).every(r => r.classList.contains('correct'));
+                        if(allCorrect) {
+                            AppState.lockedSteps[stepNum] = false;
+                            Engine.updateUI();
+                        }
+                    }
+                }
+            },
+
+            // Error Detection
+            checkError(element, isCorrect, containerId, stepNum, correctedText) {
+                const container = document.getElementById(containerId);
+                if(!container) return;
+                let attempts = parseInt(container.dataset.attempts || '0');
+                const options = Array.from(container.querySelectorAll('.error-word')).filter(b => b.hasAttribute('onclick'));
+
+                if(isCorrect) {
+                    options.forEach(o => o.style.pointerEvents = 'none');
+                    element.style.backgroundColor = 'var(--correct)';
+                    element.style.color = '#000';
+                    element.style.borderColor = 'var(--correct)';
+                    
+                    element.innerHTML = `<i class="fa-solid fa-check"></i> ${correctedText}`;
+                    element.classList.add('correct-choice-anim');
+
+                    AppState.lockedSteps[stepNum] = false;
+                    Engine.updateUI();
+                } else {
+                    attempts++;
+                    container.dataset.attempts = attempts;
+                    
+                    element.style.backgroundColor = 'var(--incorrect)';
+                    element.style.color = '#fff';
+                    element.style.borderColor = 'var(--incorrect)';
+                    element.style.animation = 'shake 0.4s';
+                    element.style.pointerEvents = 'none';
+                    
+                    if (attempts >= 2 || attempts >= options.length - 1) {
+                        options.forEach(b => b.style.pointerEvents = 'none');
+                        const correctBtn = options.find(b => b.getAttribute('onclick').includes('true'));
+                        if (correctBtn) {
+                            setTimeout(() => {
+                                correctBtn.style.backgroundColor = 'var(--accent-gold)';
+                                correctBtn.style.color = '#000';
+                                correctBtn.style.borderColor = 'var(--accent-gold)';
+                                correctBtn.innerHTML = `<i class="fa-solid fa-check"></i> ${correctedText}`;
+                                correctBtn.classList.add('correct-choice-anim');
+                                
+                                AppState.lockedSteps[stepNum] = false;
+                                Engine.updateUI();
+                            }, 500);
+                        }
+                    } else {
+                        setTimeout(() => { element.style.backgroundColor = ''; element.style.color = ''; element.style.borderColor = ''; element.style.animation = ''; }, 800);
+                    }
+                }
+            },
+
+            // Syntax Builder Engine
+            initSyntaxBuilders() {
+                Object.keys(SyntaxDB).forEach(dzId => {
+                    const data = SyntaxDB[dzId];
+                    const wordBank = document.getElementById(data.bank);
+                    if (!wordBank) return;
+                    
+                    let shuffled = [...data.target].sort(() => Math.random() - 0.5);
+                    shuffled.forEach(word => {
+                        let btn = document.createElement('div');
+                        btn.className = 'word-chip';
+                        btn.innerText = word;
+                        // Extract step number from ID (e.g. dz1 -> 3) based on our lockedSteps
+                        // We'll hardcode step 3 for dz1 in homework
+                        btn.onclick = () => Engine.moveChip(btn, dzId, data.bank, data.target, 3);
+                        wordBank.appendChild(btn);
+                    });
+                });
+            },
+
+            moveChip(chip, dzId, bankId, targetArray, stepNum) {
+                if(chip.classList.contains('used')) return;
+                const dz = document.getElementById(dzId);
+                if(dz.classList.contains('success') || dz.classList.contains('auto-solved')) return;
+                
+                const newChip = document.createElement('div');
+                newChip.className = 'word-chip';
+                newChip.style.background = 'var(--accent)';
+                newChip.style.color = '#000';
+                newChip.innerText = chip.innerText;
+                
+                if (!chip.id) chip.id = 'chip_' + Math.random().toString(36).substr(2, 9);
+                newChip.dataset.sourceId = chip.id;
+
+                newChip.onclick = function() {
+                    if(dz.classList.contains('success') || dz.classList.contains('auto-solved')) return;
+                    dz.removeChild(this);
+                    document.getElementById(this.dataset.sourceId).classList.remove('used');
+                };
+                
+                dz.appendChild(newChip);
+                chip.classList.add('used');
+
+                const currentPhrase = Array.from(dz.children).map(c => c.innerText);
+                
+                if(currentPhrase.length === targetArray.length) {
+                    if(JSON.stringify(currentPhrase) === JSON.stringify(targetArray)) {
+                        dz.classList.add('success');
+                        Array.from(dz.children).forEach(c => {
+                            c.style.background = 'var(--correct)';
+                            c.style.color = '#000';
+                            c.style.pointerEvents = 'none';
+                        });
+                        AppState.lockedSteps[stepNum] = false;
+                        Engine.updateUI();
+                    } else {
+                        SyntaxDB[dzId].errors++;
+                        
+                        dz.style.borderColor = 'var(--incorrect)';
+                        dz.style.animation = 'shake 0.4s';
+                        
+                        if (SyntaxDB[dzId].errors >= 3) {
+                            setTimeout(() => {
+                                dz.innerHTML = ''; dz.style.borderColor = ''; dz.style.animation = ''; dz.classList.add('auto-solved');
+                                targetArray.forEach(w => {
+                                    const finalChip = document.createElement('div');
+                                    finalChip.className = 'word-chip'; finalChip.style.background = 'var(--accent-gold)'; finalChip.style.color = '#000'; finalChip.innerText = w; finalChip.style.pointerEvents = 'none';
+                                    dz.appendChild(finalChip);
+                                });
+                                document.getElementById(bankId).querySelectorAll('.word-chip').forEach(c => c.classList.add('used'));
+                                AppState.lockedSteps[stepNum] = false;
+                                Engine.updateUI();
+                            }, 1000);
+                        } else {
+                            setTimeout(() => { 
+                                dz.innerHTML = ''; dz.style.borderColor=''; dz.style.animation=''; 
+                                document.getElementById(bankId).querySelectorAll('.word-chip').forEach(c=>c.classList.remove('used')); 
+                            }, 1000);
+                        }
+                    }
+                }
+            },
+
+            submitWriting() {
+                const box = document.getElementById('writingBox');
+                if(box.value.length >= 40) {
+                    box.style.borderColor = 'var(--correct)';
+                    box.style.pointerEvents = 'none';
+                    document.getElementById('submitWritingBtn').style.display = 'none';
+                    document.getElementById('writingSuccess').style.display = 'block';
+                    AppState.lockedSteps[8] = false;
+                    Engine.updateUI();
+                }
+            }
+        };
+
+        window.Engine = Engine;
+
+        /* =========================================
+           INIT & EVENT LISTENERS
+        ========================================= */
+        window.onload = () => {
+            Engine.initSyntaxBuilders();
+            Engine.updateUI();
+
+            // Writing box listener
+            const wBox = document.getElementById('writingBox');
+            if(wBox) {
+                wBox.addEventListener('input', (e) => {
+                    const len = e.target.value.length;
+                    const counter = document.getElementById('charCount');
+                    const btn = document.getElementById('submitWritingBtn');
+                    counter.innerText = `${len} / 40 characters minimum`;
+                    if(len >= 40) {
+                        counter.style.color = 'var(--correct)';
+                        btn.disabled = false;
+                    } else {
+                        counter.style.color = 'var(--text-dim)';
+                        btn.disabled = true;
+                    }
+                });
+            }
+
+            // Enhanced Swipe Event Listeners (Vertical vs Horizontal check)
+            let tsX = 0, tsY = 0, teX = 0, teY = 0;
+            const mainContainer = document.getElementById('main-container');
+            if (mainContainer) {
+                mainContainer.addEventListener('touchstart', e => {
+                    if(e.target.closest('.word-chip') || e.target.closest('.error-word') || e.target.tagName === 'INPUT' || e.target.closest('button') || e.target.tagName === 'TEXTAREA') return;
+                    tsX = e.changedTouches[0].screenX;
+                    tsY = e.changedTouches[0].screenY;
+                }, {passive: true});
+                mainContainer.addEventListener('touchend', e => {
+                    if(e.target.closest('.word-chip') || e.target.closest('.error-word') || e.target.tagName === 'INPUT' || e.target.closest('button') || e.target.tagName === 'TEXTAREA') return;
+                    teX = e.changedTouches[0].screenX;
+                    teY = e.changedTouches[0].screenY;
+                    
+                    // Check if it's mostly a horizontal swipe (avoid triggering on vertical scroll)
+                    if (Math.abs(teX - tsX) > Math.abs(teY - tsY) && Math.abs(teX - tsX) > 50) {
+                        if (teX < tsX && !AppState.lockedSteps[AppState.currentStep]) Engine.nextStep(); // Swipe left
+                        if (teX > tsX && AppState.currentStep > 0) Engine.prevStep(); // Swipe right
+                    }
+                }, {passive: true});
+            }
+        };
+    </script>
+</body>
+</html>
